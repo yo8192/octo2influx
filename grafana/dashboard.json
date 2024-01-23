@@ -1,0 +1,1899 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": 9,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 39,
+      "panels": [],
+      "title": "Electrictity",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "red",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 0,
+        "y": 1
+      },
+      "id": 32,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^_value$/",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electricity",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> sum()\n",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "consumption"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "title": "Electricity Imported",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+      },
+      "description": "Time shown is the **end** of each half hour",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Usage (kWh/30min)",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 50,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "stepBefore",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "kwatth"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "export-unit-rates_£/kWh"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Unit rate (£/kWh)"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "import_kWh"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "import-unit-rates_£/kWh"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyGBP"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "Unit rate (£/kWh)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 21,
+        "x": 3,
+        "y": 1
+      },
+      "id": 30,
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "10.0.1",
+      "targets": [
+        {
+          "alias": "Usage",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "30m"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "linear"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electricity",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "import \"date\"\n\nfrom(bucket: \"${bucket}\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: false)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_time: \"_stop\", _value: \"export_kWh\"})\n  |> group()\n",
+          "rawQuery": false,
+          "refId": "export",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "consumption"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "mean"
+              }
+            ]
+          ],
+          "tags": []
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "hide": false,
+          "query": "import \"date\"\n\nfrom(bucket:\"$bucket\")\n|> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n|> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n|> filter(fn: (r) => r.price_type == \"standard-unit-rates\")\n|> filter(fn: (r) => r.tariff_code == \"${electricity_export_tariff}\")\n|> filter(fn: (r) => r[\"direction\"] == \"export\")\n|> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n|> filter(fn: (r) => r._field == \"p/kWh_inc_vat\")\n|> map(fn: (r) => ({ r with \"export-unit-rates_£/kWh\": r._value / 100.0}))\n|> keep(columns: [\"_time\", \"export-unit-rates_£/kWh\"])\n\n\n  ",
+          "refId": "export_unit_rate"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "hide": false,
+          "query": "import \"date\"\n\nfrom(bucket: \"${bucket}\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: false)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_time: \"_stop\", _value: \"import_kWh\"})\n  |> group()",
+          "refId": "import"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "hide": false,
+          "query": "import \"date\"\nfrom(bucket:\"$bucket\")\n|> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n|> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n|> filter(fn: (r) => r.price_type == \"standard-unit-rates\")\n|> filter(fn: (r) => r.tariff_code == \"${electricity_import_tariff}\")\n|> filter(fn: (r) => r[\"direction\"] == \"import\")\n|> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n|> filter(fn: (r) => r._field == \"p/kWh_inc_vat\")\n|> map(fn: (r) => ({ r with \"import-unit-rates_£/kWh\": r._value / 100.0}))\n|> keep(columns: [\"_time\", \"import-unit-rates_£/kWh\"])\n\n",
+          "refId": "import_unit_rate"
+        }
+      ],
+      "title": "Electricity Import/Export",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 6
+      },
+      "id": 6,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^_value$/",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electricity",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> sum()\n",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "consumption"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "title": "Electricity Exported",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyGBP"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total cost"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "id": 35,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electricity",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "import \"date\"\n\nconsumption =\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_time: \"_stop\", _value: \"consumption_kWh\"})\n  |> group()\n\ncombinedRates = \nfrom(bucket:\"$bucket\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r.tariff_code == \"${electricity_import_tariff}\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r._field =~ /_inc_vat$/)\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_field\", \"_value\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") \n  |> rename(columns: {_time: \"_stop\"})\n\n\njoined = join(\n    tables: {consumption:consumption, combinedRates:combinedRates},\n    on: [\"_stop\"]\n  )\n  |> rename(columns: {_stop: \"_time\"})\n  \nstanding_cost = joined\n  // 48 increments of 30min in a day, then divide by 100 to go from pence to £\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Standing charge cost\"})\n\nusage_cost = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Usage cost\"})\n\ntotal_cost = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0 + r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Total cost\"})\n\nunion(tables: [standing_cost, usage_cost, total_cost])",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "consumption"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "title": "Electricity Import Cost",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyGBP"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Export revenue"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "id": 36,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electricity",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "import \"date\"\n\nconsumption =\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_time: \"_stop\", _value: \"consumption_kWh\"})\n  |> group()\n\ncombinedRates = \nfrom(bucket:\"$bucket\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r.tariff_code == \"${electricity_export_tariff}\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r._field =~ /_inc_vat$/)\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_field\", \"_value\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") \n  |> rename(columns: {_time: \"_stop\"})\n\njoined = join(\n    tables: {consumption:consumption, combinedRates:combinedRates},\n    on: [\"_stop\"]\n  )\n  |> rename(columns: {_stop: \"_time\"})\n  \nstanding_cost = joined\n  // 48 increments of 30min in a day, then divide by 100 to go from pence to £\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Standing charge cost\"})\n\nexport_revenue = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Export revenue\"})\n\ntotal_revenue = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0 + r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Total revenue\"})\n\nunion(tables: [standing_cost, export_revenue, total_revenue])",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "consumption"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "title": "Electricity Export Revenue",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "id": 40,
+      "panels": [],
+      "title": "Electricity History",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "red",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 0,
+        "y": 16
+      },
+      "id": 33,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^_value$/",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electricity",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> sum()\n",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "consumption"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "timeFrom": "$HistoryDuration",
+      "title": "Electricity Import",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 50,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 1,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "kwatth"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "import"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "export"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 20,
+        "x": 4,
+        "y": 16
+      },
+      "id": 28,
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum",
+            "mean",
+            "min",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "hide": false,
+          "query": "import \"timezone\"\n\noption location = timezone.location(name: \"Europe/London\")\n\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> aggregateWindow(every: 1d, fn: sum)\n  |> timeShift(duration: -1m)\n  |> truncateTimeColumn(unit: 1d)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_value: \"export\"})\n",
+          "refId": "Export"
+        },
+        {
+          "alias": "Usage",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "24h"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "linear"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electricity",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "import \"timezone\"\n\noption location = timezone.location(name: \"Europe/London\")\n\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> aggregateWindow(every: 1d, fn: sum)\n  |> timeShift(duration: -1m)\n  |> truncateTimeColumn(unit: 1d)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_value: \"import\"})\n\n",
+          "rawQuery": false,
+          "refId": "Import",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "consumption"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "timeFrom": "$HistoryDuration",
+      "title": "Electricity Import/Export per Day",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 21
+      },
+      "id": 34,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^_value$/",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electricity",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> sum()\n",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "consumption"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "timeFrom": "$HistoryDuration",
+      "title": "Electricity Export",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyGBP"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total cost"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "id": 37,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electricity",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "import \"date\"\n\nconsumption =\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_time: \"_stop\", _value: \"consumption_kWh\"})\n  |> group()\n\ncombinedRates = \nfrom(bucket:\"$bucket\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r.tariff_code == \"${electricity_import_tariff}\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r._field =~ /_inc_vat$/)\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_field\", \"_value\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") \n  |> rename(columns: {_time: \"_stop\"})\n\n\njoined = join(\n    tables: {consumption:consumption, combinedRates:combinedRates},\n    on: [\"_stop\"]\n  )\n  |> rename(columns: {_stop: \"_time\"})\n  \nstanding_cost = joined\n  // 48 increments of 30min in a day, then divide by 100 to go from pence to £\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Standing charge cost\"})\n\nusage_cost = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Usage cost\"})\n\ntotal_cost = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0 + r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Total cost\"})\n\nunion(tables: [standing_cost, usage_cost, total_cost])",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "consumption"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "timeFrom": "$HistoryDuration",
+      "title": "Electricity Import Cost",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyGBP"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total cost"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "id": 44,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electricity",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "import \"date\"\n\nconsumption =\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_time: \"_stop\", _value: \"consumption_kWh\"})\n  |> group()\n\ncombinedRates = \nfrom(bucket:\"$bucket\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r.tariff_code == \"${electricity_import_tariff}\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r._field =~ /_inc_vat$/)\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_field\", \"_value\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") \n  |> rename(columns: {_time: \"_stop\"})\n\n\njoined = join(\n    tables: {consumption:consumption, combinedRates:combinedRates},\n    on: [\"_stop\"]\n  )\n  |> rename(columns: {_stop: \"_time\"})\n  \nstanding_cost = joined\n  // 48 increments of 30min in a day, then divide by 100 to go from pence to £\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Standing charge cost\"})\n\nusage_cost = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Usage cost\"})\n\ntotal_cost = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0 + r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Total cost\"})\n\nunion(tables: [standing_cost, usage_cost, total_cost])",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "consumption"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "timeFrom": "$HistoryDuration",
+      "title": "Electricity Import Cost",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "id": 41,
+      "panels": [],
+      "title": "Gas",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "red",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "m3"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 4,
+        "x": 0,
+        "y": 31
+      },
+      "id": 43,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "/^_value$/",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "none"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electricity",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"m3\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"gas\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> sum()\n",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "consumption"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "timeFrom": "$HistoryDuration",
+      "title": "Gas Import",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 50,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 1,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "m3"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "import"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 20,
+        "x": 4,
+        "y": 31
+      },
+      "id": 42,
+      "links": [],
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum",
+            "mean",
+            "min",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.5.1",
+      "targets": [
+        {
+          "alias": "Usage",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "24h"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "linear"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "electricity",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"m3\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"gas\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> aggregateWindow(every: 1d, fn: sum)\n  |> timeShift(duration: -1m)\n  |> truncateTimeColumn(unit: 1d)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_value: \"import\"})",
+          "rawQuery": false,
+          "refId": "Import",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "consumption"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "timeFrom": "$HistoryDuration",
+      "title": "Gas Import per Day",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "auto": false,
+        "auto_count": 30,
+        "auto_min": "10s",
+        "current": {
+          "selected": false,
+          "text": "30d",
+          "value": "30d"
+        },
+        "hide": 0,
+        "label": "History Duration",
+        "name": "HistoryDuration",
+        "options": [
+          {
+            "selected": false,
+            "text": "7d",
+            "value": "7d"
+          },
+          {
+            "selected": false,
+            "text": "14d",
+            "value": "14d"
+          },
+          {
+            "selected": true,
+            "text": "30d",
+            "value": "30d"
+          },
+          {
+            "selected": false,
+            "text": "90d",
+            "value": "90d"
+          },
+          {
+            "selected": false,
+            "text": "180d",
+            "value": "180d"
+          },
+          {
+            "selected": false,
+            "text": "365d",
+            "value": "365d"
+          }
+        ],
+        "query": "7d,14d,30d,90d,180d,365d",
+        "queryValue": "",
+        "refresh": 2,
+        "skipUrlSync": false,
+        "type": "interval"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "octo2influx/autogen",
+          "value": "octo2influx/autogen"
+        },
+        "hide": 0,
+        "name": "bucket",
+        "options": [
+          {
+            "selected": true,
+            "text": "octo2influx/autogen",
+            "value": "octo2influx/autogen"
+          }
+        ],
+        "query": "octo2influx/autogen",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "octopus-usage",
+          "value": "octopus-usage"
+        },
+        "hide": 0,
+        "name": "usage_measurement",
+        "options": [
+          {
+            "selected": true,
+            "text": "octopus-usage",
+            "value": "octopus-usage"
+          }
+        ],
+        "query": "octopus-usage",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "octopus-tariffs",
+          "value": "octopus-tariffs"
+        },
+        "hide": 0,
+        "name": "tariffs_measurement",
+        "options": [
+          {
+            "selected": true,
+            "text": "octopus-tariffs",
+            "value": "octopus-tariffs"
+          }
+        ],
+        "query": "octopus-tariffs",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "Agile Octopus",
+          "value": "E-1R-AGILE-FLEX-22-11-25-C"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+        },
+        "definition": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> keep(columns: [\"tariff_code\", \"display_name\", \"_value\"])\n  |> first()\n  |> map(fn: (r) => ({display_value: \"${r.display_name}#@#${r.tariff_code}\"}))",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "electricity_import_tariff",
+        "options": [],
+        "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> keep(columns: [\"tariff_code\", \"display_name\", \"_value\"])\n  |> first()\n  |> map(fn: (r) => ({display_value: \"${r.display_name}#@#${r.tariff_code}\"}))",
+        "refresh": 1,
+        "regex": "/(?<text>.+)#@#(?<value>.+)/g",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "Agile Outgoing Octopus",
+          "value": "E-1R-AGILE-OUTGOING-19-05-13-C"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+        },
+        "definition": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> keep(columns: [\"tariff_code\", \"display_name\", \"_value\"])\n  |> first()\n  |> map(fn: (r) => ({display_value: \"${r.display_name}#@#${r.tariff_code}\"}))",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "electricity_export_tariff",
+        "options": [],
+        "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> keep(columns: [\"tariff_code\", \"display_name\", \"_value\"])\n  |> first()\n  |> map(fn: (r) => ({display_value: \"${r.display_name}#@#${r.tariff_code}\"}))",
+        "refresh": 1,
+        "regex": "/(?<text>.+)#@#(?<value>.+)/g",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "Flexible Octopus",
+          "value": "G-1R-VAR-22-11-01-C"
+        },
+        "datasource": {
+          "type": "influxdb",
+          "uid": "c8229740-0e9a-4f46-a107-27c0a34b86fb"
+        },
+        "definition": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"gas\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> keep(columns: [\"tariff_code\", \"display_name\", \"_value\"])\n  |> first()\n  |> map(fn: (r) => ({display_value: \"${r.display_name}#@#${r.tariff_code}\"}))",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "gas_tariff",
+        "options": [],
+        "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"gas\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> keep(columns: [\"tariff_code\", \"display_name\", \"_value\"])\n  |> first()\n  |> map(fn: (r) => ({display_value: \"${r.display_name}#@#${r.tariff_code}\"}))",
+        "refresh": 1,
+        "regex": "/(?<text>.+)#@#(?<value>.+)/g",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now-18h"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "",
+  "title": "octo2influx Energy Usage",
+  "uid": "a21a1af5-4653-49d7-a239-be8140c5dacb",
+  "version": 28,
+  "weekStart": "monday"
+}

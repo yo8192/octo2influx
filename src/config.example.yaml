@@ -1,0 +1,140 @@
+---
+# octo2influx.py configuration file
+
+# Run 'octo2influx.py --help' to get information on the config keys.
+# Note settings can be overridden by command line parameters,
+# and environement variable with prefix 'OCTO2INFLUX_'
+# e.g. timezone -> OCTO2INFLUX_TIMEZONE
+
+influx_org: "octo2influx"
+influx_bucket: "octo2influx/autogen"
+influx_tariff_measurement: "octopus-tariffs"
+influx_usage_measurement: "octopus-usage"
+influx_url: "http://localhost:8086"
+# See https://docs.influxdata.com/influxdb/cloud/admin/tokens/create-token/
+# Make sure it has write permissions on influx_bucket!
+influx_api_token: "MY_INFLUX_API_TOKEN"
+
+# See Octopus API's documentation at https://developer.octopus.energy/docs/api/
+
+# To get an Octopus API key, visit https://octopus.energy/dashboard/developer/
+octopus_api_key: "my_octopus_api_key"
+
+# Usage (consumption/import/export) to retrieve from Octopus
+#
+# How to:
+# - find your meter serial number, meter point (MPAN or MPRN):
+#   see your Octopus invoices, or your account on Octopus's website
+# - find the unit: it is kWh for electricity. For gas, go to your account
+#   on the Octopus Website -> Explore My Energy Use -> Download your smart data for Gas,
+#   and check the unit in the header of the CSV file.
+usage:
+  - energy_type: "electricity"
+    direction: "import"
+    meter_point: "mpan"
+    meter_serial: "serial_number"
+    unit: "kWh"
+  - energy_type: "electricity"
+    direction: "export"
+    meter_point: "mpan"
+    meter_serial: "serial_number"
+    unit: "kWh"
+  - energy_type: "gas"
+    direction: "import"
+    meter_point: "mprn"
+    meter_serial: "serial_number"
+    # Note: Octopus gives m^3 for SMETS v2 meters, kWh for SMETS v1 ones
+    unit: "m3"
+
+# Tariffs to retrieve from Octopus
+#
+# How to (replace the curly-brackets):
+# - Find which GSP (grid-supply-point, i.e. geographical zone) you are in:
+# $ curl -u "{yourOctopusApiKey}:" https://api.octopus.energy/v1/electricity-meter-points/{MPAN}/ | jq
+# - Find your product:
+# $ curl -u "{yourOctopusApiKey}:" https://api.octopus.energy/v1/products/ | jq '.results[] | .code + " " + .full_name'  | less
+# - Find the full name, display name, and description of the product (and URLs etc):
+# $ curl -u "{yourOctopusApiKey}:" https://api.octopus.energy/v1/products/{OCTOPUS-PRODUCT-CODE}/ | jq  | less
+tariffs:
+  - energy_type: "electricity"
+    direction: "export"
+    product_code: "FLUX-EXPORT-23-02-14"
+    full_name: "Octopus Flux Export February 2023 v1"
+    display_name: "Octopus Flux Export"
+    description: "Octopus Flux Export February 2023 v1"
+    tariff_code: "E-1R-FLUX-EXPORT-23-02-14-C"
+  - energy_type: "electricity"
+    direction: "export"
+    product_code: "AGILE-OUTGOING-19-05-13"
+    full_name: "Agile Outgoing Octopus May 2019"
+    display_name: "Agile Outgoing Octopus"
+    description: "Outgoing Octopus Agile rate pays you for all your exported energy based on the day-ahead wholesale rate."
+    tariff_code: "E-1R-AGILE-OUTGOING-19-05-13-C"
+  - energy_type: "electricity"
+    direction: "export"
+    product_code: "OUTGOING-FIX-12M-19-05-13"
+    full_name: "Outgoing Octopus 12M Fixed May 2019"
+    display_name: "Outgoing Octopus 12M Fixed"
+    description: "Outgoing Octopus flat rate pays you for all exported energy at a flat rate."
+    tariff_code: "E-1R-OUTGOING-FIX-12M-19-05-13-C"
+  - energy_type: "electricity"
+    direction: "import"
+    product_code: "FLUX-IMPORT-23-02-14"
+    full_name: "Octopus Flux Import February 2023 v1"
+    display_name: "Octopus Flux Import"
+    description: "Octopus Flux Import February 2023 v1"
+    tariff_code: "E-1R-FLUX-IMPORT-23-02-14-C"
+  - energy_type: "electricity"
+    direction: "import"
+    product_code: "VAR-22-11-01"
+    full_name: "Flexible Octopus November 2022 v1"
+    display_name: "Flexible Octopus"
+    description: "Flexible Octopus offers great value and 100% renewable electricity. As a variable tariff, your prices can rise and fall with wholesale prices - but we'll always give you notice of a change."
+    tariff_code: "E-1R-VAR-22-11-01-C"
+  - energy_type: "electricity"
+    direction: "import"
+    product_code: "AGILE-FLEX-22-11-25"
+    full_name: "Agile Octopus November 2022 v"
+    display_name: "Agile Octopus"
+    description: "With Agile Octopus, you get access to half-hourly energy prices, tied to wholesale prices and updated daily.  The unit rate is capped at 100p/kWh (including VAT)."
+    tariff_code: "E-1R-AGILE-FLEX-22-11-25-C"
+  - energy_type: "electricity"
+    direction: "import"
+    product_code: "GO-VAR-22-10-14"
+    full_name: "Octopus Go October 2022 v1"
+    display_name: "Octopus Go"
+    description: "The smart EV tariff with super cheap electricity between 00:30 - 04:30 every night"
+    tariff_code: "E-1R-GO-VAR-22-10-14-C"
+  - energy_type: "electricity"
+    direction: "import"
+    product_code: "LOYAL-FIX-12M-23-07-25"
+    full_name: "Loyal Octopus 12M Fixed July 2023 v1"
+    display_name: "Loyal Octopus 12M Fixed"
+    description: "This tariff features 100% renewable electricity and fixes your unit rates and standing charge for 12 months. This tariff has £75/fuel exit fees."
+    tariff_code: "E-1R-LOYAL-FIX-12M-23-07-25-C"
+  - energy_type: "gas"
+    direction: "import"
+    product_code: "VAR-22-11-01"
+    full_name: "Flexible Octopus November 2022 v1"
+    display_name: "Flexible Octopus"
+    description: "Flexible Octopus offers great value and 100% renewable electricity."
+    tariff_code: "G-1R-VAR-22-11-01-C"
+  - energy_type: "gas"
+    direction: "import"
+    product_code: "LOYAL-FIX-12M-23-07-25"
+    full_name: "Loyal Octopus 12M Fixed July 2023 v1"
+    display_name: "Loyal Octopus 12M Fixed"
+    description: "This tariff features 100% renewable electricity and fixes your unit rates and standing charge for 12 months. This tariff has £75/fuel exit fees."
+    tariff_code: "G-1R-LOYAL-FIX-12M-23-07-25-C"
+
+loglevel: INFO
+
+# Various settings you are unlikely to need changing:
+timezone: "Europe/London"
+# Timespan to retrieve data for. 0 means today.
+from_max_days_ago: 60
+to_days_ago: 0
+base_url: "https://api.octopus.energy/v1"
+price_types:
+  "standard-unit-rates": "p/kWh"
+  "standing-charges": "p/day"

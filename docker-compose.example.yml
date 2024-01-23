@@ -1,0 +1,53 @@
+version: '2'
+services:
+  influx:
+    image: "influxdb:2.7"
+    restart: always
+    logging:
+        driver: "json-file"
+        options:
+            max-file: "5"
+            max-size: "20m"
+   volumes:
+      - influxdb2data:/var/lib/influxdb2
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      #- DOCKER_INFLUXDB_INIT_PASSWORD=
+      - DOCKER_INFLUXDB_INIT_ORG=octo2influx
+      - DOCKER_INFLUXDB_INIT_BUCKET=octo2influx/autogen
+      - DOCKER_INFLUXDB_INIT_RETENTION=80w
+      #- DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=
+
+  grafana:
+    image: "grafana/grafana"
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafanadata:/var/lib/grafana
+    environment:
+      #- GF_SECURITY_ADMIN_PASSWORD=
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      # Use European dates DD/MM, instead of the default US MM/DD
+      # Used by graph and other places where we only show small intervals
+      - GF_DATE_FORMATS_INTERVAL_HOUR=DD/MM HH:mm
+      - GF_DATE_FORMATS_INTERVAL_DAY=DD/MM
+
+  octo2influx:
+    build:
+      context: ./src
+    image: "octo2influx:latest"
+    restart: always
+    logging:
+        driver: "json-file"
+        options:
+            max-file: "5"
+            max-size: "20m"
+    volumes:
+      - "./config.yaml:/etc/octo2influx/config.yaml"
+    environment:
+      FREQ: "1h"
+
+
