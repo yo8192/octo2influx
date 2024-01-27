@@ -275,9 +275,8 @@ def iso8601_from_datetime(dt: datetime) -> str:
 
 def datetime_days_ago(days_ago: int, time_of_day: datetime.time) -> datetime:
     """Return the timestamp of days_ago days ago from today at time_of_day."""
-    d = datetime.now(pytz.timezone(cfg['timezone'])).date() - \
-        timedelta(days=days_ago)
-    return datetime.combine(d, time_of_day, pytz.timezone(cfg['timezone']))
+    d = datetime.now().date() - timedelta(days=days_ago)
+    return pytz.timezone(cfg['timezone']).localize(datetime.combine(d, time_of_day))
 
 
 def datetime_from_days_ago(days_ago: int) -> datetime:
