@@ -585,7 +585,7 @@
           "measurement": "electricity",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "import \"date\"\n\nconsumption =\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_time: \"_stop\", _value: \"consumption_kWh\"})\n  |> group()\n\ncombinedRates = \nfrom(bucket:\"$bucket\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r.tariff_code == \"${electricity_import_tariff}\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r._field =~ /_inc_vat$/)\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_field\", \"_value\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") \n  |> rename(columns: {_time: \"_stop\"})\n\n\njoined = join(\n    tables: {consumption:consumption, combinedRates:combinedRates},\n    on: [\"_stop\"]\n  )\n  |> rename(columns: {_stop: \"_time\"})\n  \nstanding_cost = joined\n  // 48 increments of 30min in a day, then divide by 100 to go from pence to £\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Standing charge cost\"})\n\nusage_cost = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Usage cost\"})\n\ntotal_cost = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0 + r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Total cost\"})\n\nunion(tables: [standing_cost, usage_cost, total_cost])",
+          "query": "import \"date\"\n\nconsumption =\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> fill(value: 0.0)\n  |> rename(columns: {_time: \"_stop\", _value: \"consumption_kWh\"})\n  |> group()\n\ncombinedRates = \nfrom(bucket:\"$bucket\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r.tariff_code == \"${electricity_import_tariff}\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r._field =~ /_inc_vat$/)\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_field\", \"_value\"])\n  |> fill(value: 0.0)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") \n  |> rename(columns: {_time: \"_stop\"})\n\njoin(\n    tables: {consumption:consumption, combinedRates:combinedRates},\n    on: [\"_stop\"]\n  )\n|> rename(columns: {_stop: \"_time\"})\n|> reduce(fn: (r, accumulator) => ({\n      // 48 increments of 30min in a day, then divide by 100 to go from pence to £\n      \"Standing charge cost\": r[\"p/day_inc_vat\"]/48.0/100.0 + accumulator[\"Standing charge cost\"],\n      \"Usage cost\": r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0 + accumulator[\"Usage cost\"],\n      \"Total cost\": r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0 + r[\"p/day_inc_vat\"]/48.0/100.0 + accumulator[\"Total cost\"]\n    }),\n    identity: {\"Standing charge cost\": 0.0, \"Usage cost\": 0.0, \"Total cost\": 0.0}\n   )  \n",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -607,6 +607,21 @@
         }
       ],
       "title": "Electricity Import Cost",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {},
+            "indexByName": {
+              "Standing charge cost": 0,
+              "Total cost": 2,
+              "Usage cost": 1
+            },
+            "renameByName": {}
+          }
+        }
+      ],
       "type": "stat"
     },
     {
@@ -646,7 +661,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Export revenue"
+              "options": "Net revenue"
             },
             "properties": [
               {
@@ -683,7 +698,7 @@
         },
         "text": {},
         "textMode": "value_and_name",
-        "wideLayout": true
+        "wideLayout": false
       },
       "pluginVersion": "10.2.3",
       "targets": [
@@ -709,7 +724,7 @@
           "measurement": "electricity",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "import \"date\"\n\nconsumption =\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_time: \"_stop\", _value: \"consumption_kWh\"})\n  |> group()\n\ncombinedRates = \nfrom(bucket:\"$bucket\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r.tariff_code == \"${electricity_export_tariff}\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r._field =~ /_inc_vat$/)\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_field\", \"_value\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") \n  |> rename(columns: {_time: \"_stop\"})\n\njoined = join(\n    tables: {consumption:consumption, combinedRates:combinedRates},\n    on: [\"_stop\"]\n  )\n  |> rename(columns: {_stop: \"_time\"})\n  \nstanding_cost = joined\n  // 48 increments of 30min in a day, then divide by 100 to go from pence to £\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Standing charge cost\"})\n\nexport_revenue = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Export revenue\"})\n\ntotal_revenue = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0 + r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Total revenue\"})\n\nunion(tables: [standing_cost, export_revenue, total_revenue])",
+          "query": "import \"date\"\n\nconsumption =\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> fill(value: 0.0)\n  |> rename(columns: {_time: \"_stop\", _value: \"consumption_kWh\"})\n  |> group()\n\ncombinedRates = \nfrom(bucket:\"$bucket\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r.tariff_code == \"${electricity_export_tariff}\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r._field =~ /_inc_vat$/)\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_field\", \"_value\"])\n  |> fill(value: 0.0)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") \n  |> rename(columns: {_time: \"_stop\"})\n\njoin(\n    tables: {consumption:consumption, combinedRates:combinedRates},\n    on: [\"_stop\"]\n  )\n|> rename(columns: {_stop: \"_time\"})\n|> reduce(fn: (r, accumulator) => ({\n      // 48 increments of 30min in a day, then divide by 100 to go from pence to £\n      \"Standing charge cost\": r[\"p/day_inc_vat\"]/48.0/100.0 + accumulator[\"Standing charge cost\"],\n      \"Export revenue\": r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0 + accumulator[\"Export revenue\"],\n      \"Net revenue\": r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0 - r[\"p/day_inc_vat\"]/48.0/100.0 + accumulator[\"Net revenue\"]\n    }),\n    identity: {\"Standing charge cost\": 0.0, \"Export revenue\": 0.0, \"Net revenue\": 0.0}\n   )  \n",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -731,6 +746,22 @@
         }
       ],
       "title": "Electricity Export Revenue",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {},
+            "indexByName": {
+              "Export revenue": 2,
+              "Standing charge cost": 1,
+              "Total revenue": 3,
+              "_time": 0
+            },
+            "renameByName": {}
+          }
+        }
+      ],
       "type": "stat"
     },
     {
@@ -1211,7 +1242,7 @@
         "x": 0,
         "y": 25
       },
-      "id": 37,
+      "id": 46,
       "links": [],
       "maxDataPoints": 100,
       "options": {
@@ -1254,7 +1285,7 @@
           "measurement": "electricity",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "import \"date\"\n\nconsumption =\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_time: \"_stop\", _value: \"consumption_kWh\"})\n  |> group()\n\ncombinedRates = \nfrom(bucket:\"$bucket\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r.tariff_code == \"${electricity_import_tariff}\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r._field =~ /_inc_vat$/)\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_field\", \"_value\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") \n  |> rename(columns: {_time: \"_stop\"})\n\n\njoined = join(\n    tables: {consumption:consumption, combinedRates:combinedRates},\n    on: [\"_stop\"]\n  )\n  |> rename(columns: {_stop: \"_time\"})\n  \nstanding_cost = joined\n  // 48 increments of 30min in a day, then divide by 100 to go from pence to £\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Standing charge cost\"})\n\nusage_cost = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Usage cost\"})\n\ntotal_cost = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0 + r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Total cost\"})\n\nunion(tables: [standing_cost, usage_cost, total_cost])",
+          "query": "import \"date\"\n\nconsumption =\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> fill(value: 0.0)\n  |> rename(columns: {_time: \"_stop\", _value: \"consumption_kWh\"})\n  |> group()\n\ncombinedRates = \nfrom(bucket:\"$bucket\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r.tariff_code == \"${electricity_import_tariff}\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r._field =~ /_inc_vat$/)\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_field\", \"_value\"])\n  |> fill(value: 0.0)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") \n  |> rename(columns: {_time: \"_stop\"})\n\njoin(\n    tables: {consumption:consumption, combinedRates:combinedRates},\n    on: [\"_stop\"]\n  )\n|> rename(columns: {_stop: \"_time\"})\n|> reduce(fn: (r, accumulator) => ({\n      // 48 increments of 30min in a day, then divide by 100 to go from pence to £\n      \"Standing charge cost\": r[\"p/day_inc_vat\"]/48.0/100.0 + accumulator[\"Standing charge cost\"],\n      \"Usage cost\": r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0 + accumulator[\"Usage cost\"],\n      \"Total cost\": r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0 + r[\"p/day_inc_vat\"]/48.0/100.0 + accumulator[\"Total cost\"]\n    }),\n    identity: {\"Standing charge cost\": 0.0, \"Usage cost\": 0.0, \"Total cost\": 0.0}\n   )  \n",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -1277,6 +1308,21 @@
       ],
       "timeFrom": "$HistoryDuration",
       "title": "Electricity Import Cost",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {},
+            "indexByName": {
+              "Standing charge cost": 0,
+              "Total cost": 2,
+              "Usage cost": 1
+            },
+            "renameByName": {}
+          }
+        }
+      ],
       "type": "stat"
     },
     {
@@ -1316,13 +1362,13 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Total cost"
+              "options": "Net revenue"
             },
             "properties": [
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "red",
+                  "fixedColor": "green",
                   "mode": "fixed"
                 }
               }
@@ -1336,7 +1382,7 @@
         "x": 12,
         "y": 25
       },
-      "id": 44,
+      "id": 47,
       "links": [],
       "maxDataPoints": 100,
       "options": {
@@ -1346,14 +1392,14 @@
         "orientation": "vertical",
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "sum"
           ],
           "fields": "",
           "values": false
         },
         "text": {},
         "textMode": "value_and_name",
-        "wideLayout": true
+        "wideLayout": false
       },
       "pluginVersion": "10.2.3",
       "targets": [
@@ -1379,7 +1425,7 @@
           "measurement": "electricity",
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "import \"date\"\n\nconsumption =\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> rename(columns: {_time: \"_stop\", _value: \"consumption_kWh\"})\n  |> group()\n\ncombinedRates = \nfrom(bucket:\"$bucket\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r.tariff_code == \"${electricity_import_tariff}\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r._field =~ /_inc_vat$/)\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_field\", \"_value\"])\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") \n  |> rename(columns: {_time: \"_stop\"})\n\n\njoined = join(\n    tables: {consumption:consumption, combinedRates:combinedRates},\n    on: [\"_stop\"]\n  )\n  |> rename(columns: {_stop: \"_time\"})\n  \nstanding_cost = joined\n  // 48 increments of 30min in a day, then divide by 100 to go from pence to £\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Standing charge cost\"})\n\nusage_cost = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Usage cost\"})\n\ntotal_cost = joined\n  |> map(fn: (r) => ({ _time: r._time, _value: r[\"p/day_inc_vat\"]/48.0/100.0 + r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0}))\n  |> sum()\n  |> rename(columns: {\"_value\": \"Total cost\"})\n\nunion(tables: [standing_cost, usage_cost, total_cost])",
+          "query": "import \"date\"\n\nconsumption =\nfrom(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${usage_measurement}\")\n  |> filter(fn: (r) => r[\"_field\"] == \"kWh\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> aggregateWindow(every: 30m, fn: mean, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> fill(value: 0.0)\n  |> rename(columns: {_time: \"_stop\", _value: \"consumption_kWh\"})\n  |> group()\n\ncombinedRates = \nfrom(bucket:\"$bucket\")\n  |> range(start: date.sub(d: 25h, from: v.timeRangeStart), stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r.tariff_code == \"${electricity_export_tariff}\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r._field =~ /_inc_vat$/)\n  |> aggregateWindow(every: 30m, fn: last, createEmpty: true)\n  |> fill(usePrevious: true)\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> keep(columns: [\"_time\", \"_field\", \"_value\"])\n  |> fill(value: 0.0)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") \n  |> rename(columns: {_time: \"_stop\"})\n\njoin(\n    tables: {consumption:consumption, combinedRates:combinedRates},\n    on: [\"_stop\"]\n  )\n|> rename(columns: {_stop: \"_time\"})\n|> reduce(fn: (r, accumulator) => ({\n      // 48 increments of 30min in a day, then divide by 100 to go from pence to £\n      \"Standing charge cost\": r[\"p/day_inc_vat\"]/48.0/100.0 + accumulator[\"Standing charge cost\"],\n      \"Export revenue\": r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0 + accumulator[\"Export revenue\"],\n      \"Net revenue\": r.consumption_kWh * r[\"p/kWh_inc_vat\"] / 100.0 - r[\"p/day_inc_vat\"]/48.0/100.0 + accumulator[\"Net revenue\"]\n    }),\n    identity: {\"Standing charge cost\": 0.0, \"Export revenue\": 0.0, \"Net revenue\": 0.0}\n   )  \n",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -1401,7 +1447,23 @@
         }
       ],
       "timeFrom": "$HistoryDuration",
-      "title": "Electricity Import Cost",
+      "title": "Electricity Export Revenue",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {},
+            "indexByName": {
+              "Export revenue": 2,
+              "Standing charge cost": 1,
+              "Total revenue": 3,
+              "_time": 0
+            },
+            "renameByName": {}
+          }
+        }
+      ],
       "type": "stat"
     },
     {
@@ -1679,7 +1741,7 @@
       "type": "timeseries"
     }
   ],
-  "refresh": "",
+  "refresh": "1h",
   "schemaVersion": 39,
   "tags": [],
   "templating": {
@@ -1689,7 +1751,7 @@
         "auto_count": 30,
         "auto_min": "10s",
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "30d",
           "value": "30d"
         },
@@ -1736,7 +1798,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "octo2influx/autogen",
           "value": "octo2influx/autogen"
         },
@@ -1755,7 +1817,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "octopus-usage",
           "value": "octopus-usage"
         },
@@ -1774,7 +1836,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "octopus-tariffs",
           "value": "octopus-tariffs"
         },
@@ -1793,9 +1855,9 @@
       },
       {
         "current": {
-          "selected": true,
-          "text": "Agile Octopus",
-          "value": "E-1R-AGILE-FLEX-22-11-25-C"
+          "selected": false,
+          "text": "Octopus Flux Import",
+          "value": "E-1R-FLUX-IMPORT-23-02-14-C"
         },
         "datasource": {
           "type": "influxdb",
@@ -1808,7 +1870,7 @@
         "name": "electricity_import_tariff",
         "options": [],
         "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> keep(columns: [\"tariff_code\", \"display_name\", \"_value\"])\n  |> first()\n  |> map(fn: (r) => ({display_value: \"${r.display_name}#@#${r.tariff_code}\"}))",
-        "refresh": 1,
+        "refresh": 2,
         "regex": "/(?<text>.+)#@#(?<value>.+)/g",
         "skipUrlSync": false,
         "sort": 1,
@@ -1816,9 +1878,9 @@
       },
       {
         "current": {
-          "selected": true,
-          "text": "Agile Outgoing Octopus",
-          "value": "E-1R-AGILE-OUTGOING-19-05-13-C"
+          "selected": false,
+          "text": "Octopus Flux Export",
+          "value": "E-1R-FLUX-EXPORT-23-02-14-C"
         },
         "datasource": {
           "type": "influxdb",
@@ -1831,7 +1893,7 @@
         "name": "electricity_export_tariff",
         "options": [],
         "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"electricity\")\n  |> filter(fn: (r) => r[\"direction\"] == \"export\")\n  |> keep(columns: [\"tariff_code\", \"display_name\", \"_value\"])\n  |> first()\n  |> map(fn: (r) => ({display_value: \"${r.display_name}#@#${r.tariff_code}\"}))",
-        "refresh": 1,
+        "refresh": 2,
         "regex": "/(?<text>.+)#@#(?<value>.+)/g",
         "skipUrlSync": false,
         "sort": 0,
@@ -1839,7 +1901,7 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "Flexible Octopus",
           "value": "G-1R-VAR-22-11-01-C"
         },
@@ -1854,7 +1916,7 @@
         "name": "gas_tariff",
         "options": [],
         "query": "from(bucket: \"${bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"${tariffs_measurement}\")\n  |> filter(fn: (r) => r[\"energy_type\"] == \"gas\")\n  |> filter(fn: (r) => r[\"direction\"] == \"import\")\n  |> keep(columns: [\"tariff_code\", \"display_name\", \"_value\"])\n  |> first()\n  |> map(fn: (r) => ({display_value: \"${r.display_name}#@#${r.tariff_code}\"}))",
-        "refresh": 1,
+        "refresh": 2,
         "regex": "/(?<text>.+)#@#(?<value>.+)/g",
         "skipUrlSync": false,
         "sort": 0,
@@ -1894,6 +1956,6 @@
   "timezone": "",
   "title": "octo2influx Energy Usage",
   "uid": "a21a1af5-4653-49d7-a239-be8140c5dacb",
-  "version": 28,
+  "version": 32,
   "weekStart": "monday"
 }
