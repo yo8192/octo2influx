@@ -1,5 +1,4 @@
 .vscode
-__pycache__
-config.yaml
-src/__pycache__
-src/config.yaml
+**/.coverage
+**/__pycache__
+**/config.yaml

@@ -102,8 +102,6 @@ The settings can also be set in the config file {confuse.CONFIG_FILENAME} (in
 The priority from highest to lowest is: environment, command line, config file.
 '''
 
-cfg = None
-
 
 class ValidatedConfiguration(confuse.Configuration):
     """A confuse.Configuration which transparently validates all items.
@@ -375,9 +373,10 @@ def build_argparser(params: dict[str, Parameter]) -> argparse.ArgumentParser:
     return parser
 
 
-if __name__ == "__main__":
+cfg = ValidatedConfiguration(params, PROGNAME, __name__)
 
-    cfg = ValidatedConfiguration(params, PROGNAME, __name__)
+
+if __name__ == "__main__":
 
     # Confuse automatically tries to load config.yaml from a number of
     # locations. Also try to load a config file in the same directory:
