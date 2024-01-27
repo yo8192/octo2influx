@@ -3,7 +3,6 @@
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client import query_api
 from influxdb_client.client.write_api import SYNCHRONOUS
-import json
 import dateutil.parser
 from datetime import date, datetime, timedelta, timezone
 import pytz
@@ -222,21 +221,26 @@ def std_unit_rate_to_points(measurement: str, row: dict, price_type: str, unit: 
         if point_valid_from > from_dt:
             valid_from = point_valid_from
 
+    valid_to = to_dt
     if "valid_to" in row and row["valid_to"]:
         valid_to = dateutil.parser.isoparse(
             row["valid_to"])-timedelta(seconds=1)
 
-        return rate2point(valid_from), rate2point(valid_to)
-    else:
-        to_nextday_dt = to_dt + timedelta(days=1)
-        points = []
-        cur_dt = valid_from
-        while cur_dt < to_nextday_dt:
-            if cur_dt >= from_dt - timedelta(days=1):
-                points.append(rate2point(cur_dt))
-            cur_dt.replace(hour=0, minute=0, second=0, microsecond=0)
-            cur_dt += timedelta(days=1)
-        return points
+    to_nextday_dt = valid_to + timedelta(days=1)
+    points = []
+    cur_dt = valid_from
+    while cur_dt < to_nextday_dt:
+        if cur_dt >= from_dt - timedelta(days=1):
+            points.append(rate2point(cur_dt))
+
+        cur_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+        cur_dt += timedelta(days=1)
+
+        if cur_dt > valid_to:
+            points.append(rate2point(valid_to))
+            break
+
+    return points
 
 
 def consumption_to_point(measurement: str, row: dict, usage: confuse.templates.AttrDict) -> Point:
