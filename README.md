@@ -1,3 +1,4 @@
+[//]: # (google-site-verification: bgTzhEZsRR1dfKKZZBBYCEAkwWiVAmkYZE4SKUYvx-I)  
 # octo2influx
 
 Download your Octopus Energy usage, import and export (if you have solar panels) tariff data into your [InfluxDB](https://www.influxdata.com/products/influxdb-overview/) v2 database, and display in [Grafana](https://grafana.com/).
