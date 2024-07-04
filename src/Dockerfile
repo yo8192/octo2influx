@@ -1,6 +1,6 @@
 FROM python:3.10-slim-bookworm
 
-LABEL maintainer="Blag Ivanov <88674890+echoblag@users.noreply.github.com>"
+LABEL maintainer="Thibault Godouet <yo8192@users.noreply.github.com>"
 
 WORKDIR /usr/src/app
 
