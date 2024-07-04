@@ -2,7 +2,7 @@ name: Python Docker Build and Push
 on:
   push:
     branches:
-    - master
+    - main
 
 jobs:
   build:
