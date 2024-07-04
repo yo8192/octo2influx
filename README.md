@@ -90,6 +90,8 @@ The priority from highest to lowest is: environment, command line, config file.
 ```
 
 ## Acknowledgement
+This is a fork of the https://github.com/yo8192/octo2influx project that integrates GitHub Actions to build images as well as 
+dependency management.
 
 This project was originally based on https://github.com/stevenewey/octograph/ which I used and found very useful: thanks @stevenewey. 
 
