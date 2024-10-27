@@ -65,7 +65,7 @@ params = {
     'from_max_days_ago': Parameter(int, int, 'Get Octopus data from the last retrieved timestamp, but no more than this many days ago.', default=600, validator=lambda x: x >= 0),
     'from_days_ago': Parameter(int, int, 'Get Octopus data from that many days ago (0 means today). If set, this overrides from_max_days_ago.', validator=lambda x: x >= 0),
     'to_days_ago': Parameter(int, int, 'Get Octopus data until that many days ago (0 means today).', default=0, validator=lambda x: x >= 0),
-    'loglevel': Parameter(str, confuse.Choice(['INFO', 'DEBUG', 'WARNING', 'ERROR']), 'Level of logs (INFO, DEBUG, WARNING, ERROR).', default='info'),
+    'loglevel': Parameter(str, confuse.Choice(['INFO', 'DEBUG', 'WARNING', 'ERROR']), 'Level of logs (INFO, DEBUG, WARNING, ERROR).', default='INFO'),
 
     # Octopus settings:
     'timezone': Parameter(str, str, 'Timezone of the Octopus account (e.g. where you live). Most likely always "Europe/London".', default="Europe/London"),
