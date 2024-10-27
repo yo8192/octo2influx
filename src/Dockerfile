@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.12
 
 LABEL maintainer="Thibault Godouet <yo8192@users.noreply.github.com>"
 
