@@ -50,11 +50,12 @@ usage:
 #
 # How to (replace the curly-brackets):
 # - Find which GSP (grid-supply-point, i.e. geographical zone) you are in:
-# $ curl -u "{yourOctopusApiKey}:" https://api.octopus.energy/v1/electricity-meter-points/{MPAN}/ | jq
-# - Find your product:
-# $ curl -u "{yourOctopusApiKey}:" https://api.octopus.energy/v1/products/ | jq '.results[] | .code + " " + .full_name'  | less
+#   $ curl --user "{yourOctopusApiKey}:" https://api.octopus.energy/v1/electricity-meter-points/{MPAN}/ | jq
+# - Find your product (outputs the product code, to use in the next command, and a longer human readable name):
+#   $ curl --user "{yourOctopusApiKey}:" https://api.octopus.energy/v1/products/ | jq '.results[] | .code + " " + .full_name'  | less
 # - Find the full name, display name, and description of the product (and URLs etc):
-# $ curl -u "{yourOctopusApiKey}:" https://api.octopus.energy/v1/products/{OCTOPUS-PRODUCT-CODE}/ | jq  | less
+#   Note: only use the shorter product code in the URL (e.g. INTELLI-VAR-22-10-14), *not* the long human readable name
+#   $ curl --user "{yourOctopusApiKey}:" https://api.octopus.energy/v1/products/{OCTOPUS-PRODUCT-CODE}/ | jq  | less
 tariffs:
   - energy_type: "electricity"
     direction: "export"
