@@ -95,10 +95,11 @@ line, as it is unsecure (e.g. it may stay in your shell history, appear in
 system audit logs, etc): you can define in an access-restricted configuration
 file instead.
 
-The settings can also be set in the config file {confuse.CONFIG_FILENAME} (in
-/etc/{PROGNAME}, ~/.config/{PROGNAME}, or the directory defined by the env var
-{PROGNAME}DIR), or via environment variable of the form
-{PROGNAME}_COMMAND_LINE_ARG.
+The settings can also be set in the config file (./{confuse.CONFIG_FILENAME},
+/etc/{PROGNAME}/{confuse.CONFIG_FILENAME}, ~/.config/{PROGNAME}/{confuse.CONFIG_FILENAME},
+or ${PROGNAME.upper()}DIR/{confuse.CONFIG_FILENAME} in a directory of your choice by defining
+the env var {PROGNAME.upper()}DIR).
+Or via environment variable of the form {PROGNAME.upper()}_COMMAND_LINE_ARG.
 The priority from highest to lowest is: environment, command line, config file.
 '''
 
@@ -396,8 +397,24 @@ if __name__ == "__main__":
     cfg.set_env()
 
     logging.root.setLevel(cfg['loglevel'])
+
     if read_local_config:
         logging.info(f'Read configuration from {local_config_path}.')
+    else:
+        # Check confuse did load a config file ok
+        try:
+            if not cfg['price_types']:
+                raise ValueError
+        except (confuse.exceptions.NotFoundError, ValueError):
+            configfile_paths = [
+                local_config_path,
+                path.join(f'/etc', PROGNAME, confuse.CONFIG_FILENAME),
+                path.join(path.expanduser('~/.config/'),
+                            PROGNAME, confuse.CONFIG_FILENAME)
+            ]
+            raise SystemExit(
+                    'Configuration key "price_types" was not found or empty. '
+                f'Please check you have a valid configuration file at one of {configfile_paths}.')
 
     to_dt = datetime_to_days_ago(cfg['to_days_ago'])
     to_iso8601 = iso8601_from_datetime(to_dt)
