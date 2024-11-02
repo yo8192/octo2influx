@@ -95,7 +95,7 @@ line, as it is unsecure (e.g. it may stay in your shell history, appear in
 system audit logs, etc): you can define in an access-restricted configuration
 file instead.
 
-The settings can also be set in the config file (./{confuse.CONFIG_FILENAME},
+The settings can also be set in a config file (./{confuse.CONFIG_FILENAME},
 /etc/{PROGNAME}/{confuse.CONFIG_FILENAME}, ~/.config/{PROGNAME}/{confuse.CONFIG_FILENAME},
 or ${PROGNAME.upper()}DIR/{confuse.CONFIG_FILENAME} in a directory of your choice by defining
 the env var {PROGNAME.upper()}DIR).

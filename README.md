@@ -82,10 +82,11 @@ line, as it is unsecure (e.g. it may stay in your shell history, appear in
 system audit logs, etc): you can define in an access-restricted configuration
 file instead.
 
-The settings can also be set in the config file config.yaml (in
-/etc/octo2influx, ~/.config/octo2influx, or the directory defined by the env var
-octo2influxDIR), or via environment variable of the form
-octo2influx_COMMAND_LINE_ARG.
+The settings can also be set in a config file (./config.yaml,
+/etc/octo2influx/config.yaml, ~/.config/octo2influx/config.yaml,
+or $OCTO2INFLUXDIR/config.yaml in a directory of your choice by defining
+the env var OCTO2INFLUXDIR).
+Or via environment variable of the form OCTO2INFLUX_COMMAND_LINE_ARG.
 The priority from highest to lowest is: environment, command line, config file.
 ```
 
