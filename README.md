@@ -3,10 +3,6 @@
 
 Download your Octopus Energy usage, import and export (if you have solar panels) tariff data into your [InfluxDB](https://www.influxdata.com/products/influxdb-overview/) v2 database, and display in [Grafana](https://grafana.com/).
 
-## Referral
-
-If you are interested in this and would like to join Octopus, why not use my [referral link](https://share.octopus.energy/amber-birch-257)? This will give you and me [£50 each](https://octopus.energy/help-and-faqs/articles/i-have-a-question-about-octopus-pound50-referrals/).
-
 ## About
 
 octo2influx retrieves your usage data and the tariffs you configure from the [Octopus API](https://developer.octopus.energy/docs/api/). This can then be displayed with the advanced Grafana dashboard: ![screenshot of the Grafana dashboard](images/grafana-dashboard-overview.png)
